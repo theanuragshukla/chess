@@ -1,0 +1,47 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+body {
+    background: #2B2B2B;
+    color: #fff;
+}
+.board {
+    width: 92vmin;
+    height: 92vmin;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4vmin;
+    flex-wrap: wrap-reverse;
+    flex-direction: row;
+    transform: rotate(0deg);
+}
+.block {
+    background: grey;
+    height: 11.5vmin;
+    width: 11.5vmin;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position :;
+    transform: rotate(0deg);
+}
+.block>img {
+    height: 11vmin;
+    width: 11vmin;
+}
+.dark {
+    background: #769656;
+}
+.light {
+    background: #eeeed2;
+}
+.active {
+    background: red;
+}
+.highlight {
+    background: radial-gradient(white,yellow);
+    box-sizing: border-box;
+    border: 1px solid black;
+}
