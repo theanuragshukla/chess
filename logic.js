@@ -37,19 +37,16 @@ function getblock(i){
 }
 
 window.onload =function () {
+	
+	// adding blocks
 
 	for (var p=0;p<64;p++){
 		var color;
 		if(Math.floor(p/8)!= row){
 			colorswitch();
 			row=Math.floor(p/8);
-		}		
-		if(p%2==0){
-			color=color1;
-		}
-		else{
-			color=color2;
-		}
+		}	
+		color = (p%2==0 ? color1 : color2);
 		document.getElementById("board"). innerHTML += block(p+1, color);
 	}
 
@@ -101,6 +98,9 @@ const name = (e) => {
 
 
 function validpath(x1,y1,x2,y2,diagonal){
+	if(x1>8||x2>8||y1>8||y2>8||x1<1||x2<1||y1<1||y2<1){
+		return false;
+	}
 	const ydiff = y2-y1;
 	const xdiff = x2-x1;
 	if(diagonal){
@@ -155,12 +155,15 @@ function loc(e){
 			select=true;
 			prev=data;
 			prevDiv=e;
-			e.style.background='red';
+			e.classList.add('active');
+			showLegelMoves(name(e),true);
 		}
 	}else{
 		if(prevDiv!=null){
-			prevDiv.style.background=prev.color;
+			prevDiv.classList.remove('active');
+			showLegelMoves(name(prevDiv),false);
 			prevDiv=null;
+
 		}
 
 		if(prev.name!=data.name){
@@ -224,6 +227,41 @@ class Queen{
 
 
 	}
+	canGo = () => {
+		var squares=[];
+		const rows=[];
+		const col=[];
+
+
+		for(var i=1;i<9;i++){
+			if(validpath(this.alpha,this.num,abs(this.alpha)+i,abs(this.num)+i,true)){
+				squares.push({x:abs(this.alpha)+i,y:abs(this.num)+i});
+			}
+
+			if(validpath(this.alpha,this.num,abs(this.alpha)-i,abs(this.num)-i,true)){
+				squares.push({x:abs(this.alpha)-i,y:abs(this.num)-i});
+			}
+
+			if(validpath(this.alpha,this.num,abs(this.alpha)-i,abs(this.num)+i,true)){
+				squares.push({x:abs(this.alpha)-i,y:abs(this.num)+i});
+			}
+
+			if(validpath(this.alpha,this.num,abs(this.alpha)+i,abs(this.num)-i,true)){
+				squares.push({x:abs(this.alpha)+i,y:abs(this.num)-i});
+			}
+		if(validpath(this.alpha,i,this.alpha,this.num,false)){
+				col.push({x:this.alpha,y:i});
+			}
+			if(validpath(i,this.num,this.alpha,this.num,false)){
+				rows.push({x:i,y:this.num});
+			}
+		
+
+		}
+
+
+		return [...squares,...rows,...col];
+	}
 }
 
 
@@ -278,10 +316,37 @@ class Bishop{
 
 
 	}
+	canGo=()=>{
+		var squares=[];
+
+		for(var i=1;i<9;i++){
+			if(validpath(this.alpha,this.num,abs(this.alpha)+i,abs(this.num)+i,true)){
+				squares.push({x:abs(this.alpha)+i,y:abs(this.num)+i});
+			}
+
+			if(validpath(this.alpha,this.num,abs(this.alpha)-i,abs(this.num)-i,true)){
+				squares.push({x:abs(this.alpha)-i,y:abs(this.num)-i});
+			}
+
+			if(validpath(this.alpha,this.num,abs(this.alpha)-i,abs(this.num)+i,true)){
+				squares.push({x:abs(this.alpha)-i,y:abs(this.num)+i});
+			}
+
+			if(validpath(this.alpha,this.num,abs(this.alpha)+i,abs(this.num)-i,true)){
+				squares.push({x:abs(this.alpha)+i,y:abs(this.num)-i});
+			}
+
+
+		}
+
+		return squares;
+	}
 }
 
 
-
+const abs = (number) => {
+	return Math.abs(number);
+}
 
 class Rook{
 	constructor(x,y,clr,id){
@@ -326,6 +391,22 @@ class Rook{
 			return false;
 		}
 		return true;
+	}
+
+	canGo=()=>{
+		var squares=[];
+		var rows=[];
+		var col=[];
+		for(var i=1;i<9;i++){
+			if(validpath(this.alpha,i,this.alpha,this.num,false)){
+				col.push({x:this.alpha,y:i});
+			}
+			if(validpath(i,this.num,this.alpha,this.num,false)){
+				rows.push({x:i,y:this.num});
+			}
+		}	
+		squares=[...rows,...col];
+		return squares;
 	}
 
 }
@@ -377,6 +458,20 @@ class Knight{
 		}
 		return true;
 
+	}
+	canGo=()=>{
+		const squares=[];
+		const vals=[{x:1,y:2},{x:-1,y:2},{x:1,y:-2},{x:-1,y:-2},{x:2,y:1},{x:2,y:-1},{x:-2,y:1},{x:-2,y:-1}];
+		for (const val of vals){
+			const xCoord = Math.abs(this.alpha) +(val.x>0? Math.abs(val.x):-1*Math.abs(val.x));
+			const yCoord = Math.abs(this.num) + (val.y>0?Math.abs(val.y):-1*Math.abs(val.y));
+			if(xCoord<=8 && yCoord<=8 && xCoord>0 && yCoord>0){
+				squares.push({x:xCoord,y:yCoord});
+			}
+			}
+		console.log(squares);
+		return squares;
+	
 	}
 
 }
@@ -430,6 +525,20 @@ class King{
 		}
 		return true;
 
+	}
+
+	canGo=()=>{
+		const vals = [{x:0,y:1},{x:1,y:1},{x:1,y:0},{x:1,y:-1},{x:0,y:-1},{x:-1,y:-1},{x:-1,y:0},{x:-1,y:1}];
+		const squares = [];
+		for (const val of vals){
+			const xCoord = Math.abs(this.alpha) +(val.x>0? Math.abs(val.x):-1*Math.abs(val.x));
+			const yCoord = Math.abs(this.num) + (val.y>0?Math.abs(val.y):-1*Math.abs(val.y));
+			if(xCoord<=8 && yCoord<=8 && xCoord>0 && yCoord>0){
+				squares.push({x:xCoord,y:yCoord});
+			}
+			}
+		console.log(squares);
+		return squares;
 	}
 
 }
@@ -512,4 +621,49 @@ class Pawn {
 		}
 	}
 
+	canGo=()=>{
+		const squares = [];
+		const yCoord = this.num+(this.black?-1:+1);
+		try{	
+			!isEmpty(Math.abs(this.alpha)+1,yCoord)?squares.push({x:this.alpha+1,y:yCoord}):null;
+			!isEmpty(Math.abs(this.alpha)-1,yCoord)?squares.push({x:this.alpha-1,y:yCoord}):null;}
+		catch(e){
+			}
+		isEmpty(this.alpha,yCoord)?squares.push({x:this.alpha,y:yCoord}):null;
+	(	this.notMoved && isEmpty(this.alpha,yCoord) && isEmpty(this.alpha,Math.abs(yCoord)+(this.black ? -1 : 1))) ? squares.push({x:this.alpha,y:(this.black ? yCoord-1 : yCoord+1)}):null;
+		return squares;
+	}
+
+}
+
+showLegelMoves=async (piece,show)=>{
+	console.log(piece);
+	if(piece!=null){
+		const validSquares =await pieces[piece].canGo();
+		console.log(validSquares);
+		for (const square of validSquares){
+			if(square.x<=8 && square.y<=8 && square.x>0 && square.y>0){
+				const block = document.querySelector(`[data-rank='${square.y}'][data-file='${square.x}']`);
+			const sameColor =(block.innerHTML!=''?(pieces[name(block)].color==pieces[piece].color):false);
+			if(!sameColor){
+				if(show){
+				console.log(block);
+					block.classList.add('highlight');
+				}}
+				if(!show){
+					block.classList.remove('highlight');
+				}
+
+			}
+		}
+	}
+}
+
+const getBlock=(file,rank)=>{
+	const block = document.querySelector(`[data-rank='${rank}'][data-file='${file}']`);
+	return block;
+}
+
+const isEmpty = (file,rank)=>{
+	return (getBlock(file,rank).innerHTML=='');
 }
