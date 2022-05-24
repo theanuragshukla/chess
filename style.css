@@ -24,7 +24,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    position :;
     transform: rotate(0deg);
 }
 .block>img {
@@ -38,10 +37,14 @@ body {
     background: #eeeed2;
 }
 .active {
-    background: red;
+    background: blue;
 }
 .highlight {
     background: radial-gradient(white,yellow);
     box-sizing: border-box;
     border: 1px solid black;
+}
+
+.check {
+	background:red;
 }

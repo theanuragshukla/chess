@@ -5,9 +5,13 @@ var select = false;
 var row = 0;
 var tomove = 'w';
 var prevDiv = null;
+var currDiv = null;
+var blackPieces=[];
+var whitePieces=[];
+var inCheck=null;
 var prev = {
-	x: '',
-	y: '',
+	x: 1,
+	y: 1,
 	name: '',
 };
 var current = {
@@ -53,6 +57,10 @@ window.onload = function() {
 	pieces["r2"] = new Rook(8, 1, "w", 2);
 	pieces["r3"] = new Rook(1, 8, "b", 3);
 	pieces["r4"] = new Rook(8, 8, "b", 4);
+
+	Object.keys(pieces).filter(piece=>{
+		pieces[piece].color=="w"?whitePieces.push(piece):blackPieces.push(piece);
+	})
 }
 
 function validpath(x1, y1, x2, y2, diagonal) {
@@ -69,7 +77,7 @@ function validpath(x1, y1, x2, y2, diagonal) {
 			const addtox = (x2 > x1 ? 1 : -1);
 			for (var i = 1; i < abs(ydiff); i++) {
 				var block = document.querySelector(`[data-rank='${(abs(y1))+(i*addtoy)}'][data-file='${abs(x1)+(i*addtox)}']`);
-				if (block.innerHTML == '') {} else {
+				if (block.innerHTML != ''){
 					return false
 				}
 			}
@@ -94,7 +102,7 @@ function validpath(x1, y1, x2, y2, diagonal) {
 	}
 }
 
-function loc(e) {
+async function loc(e) {
 	const blockName = `${e.getAttribute('data-file')}${e.getAttribute('data-rank')}`;
 	const data = {
 		x: e.getAttribute('data-file'),
@@ -123,11 +131,14 @@ function loc(e) {
 			select = false;
 			current = data;
 			const obj = pieces[prev.name];
-			obj.align(obj.move(e, data.y, data.x)) ? switchmove() : null;
+			obj.align(obj.move(e, data.y, data.x)) ? switchmove(data.name) : null;
 		} else {
 			select = false;
-		}
+		}	
+		checkChecks("w");
+		checkChecks("b");
 	}
+
 }
 const showLegelMoves = async (piece, show) => {
 	if (piece != null) {
@@ -148,6 +159,46 @@ const showLegelMoves = async (piece, show) => {
 		}
 	}
 }
+
+const revert=()=>{
+	//	switchmove();
+	pieces[prev.name].move(getBlock(abs(prev.x),abs(prev.y)),abs(prev.y),abs(prev.x),true);
+	pieces[prev.name].align(true);
+	var buffer=current;
+	current=prev;
+	prev=buffer;
+
+}
+
+const checkChecks=(color)=>{
+	var king = (color=="w")?"k1":"k2";
+	var allPieces=(color=="w")?blackPieces:whitePieces;
+	const kingPos={x:pieces[king].alpha,y:pieces[king].num};
+	var allMoves=[];
+	for(piece of allPieces){
+		allMoves=[...allMoves,...pieces[piece].canGo()];
+	}
+
+	for(pos of allMoves){
+		if(abs(pos.x)==abs(kingPos.x) && abs(pos.y)==abs(kingPos.y)){
+			getBlock(kingPos.x,kingPos.y).classList.add('check');
+			inCheck=color;
+			console.log("check")
+			return true;
+		}else{
+
+			inCheck=null;
+		}
+	}
+	try{
+		getBlock(prev.x,prev.y).classList.remove('check');
+	}
+	catch(e){
+		console.log(e);
+	}
+	getBlock(kingPos.x,kingPos.y).classList.remove('check');
+	return false;
+}
 //utils
 var block = function(i, color) {
 	return `<div class ="block ${color} " id=block${i} onclick ="loc(this)" data-rank=${Math.floor((i-1)/8+1)} data-file=${Math.floor((i-1)%8+1)}></div>`
@@ -167,7 +218,13 @@ const getBlock = (file, rank) => {
 	return block;
 }
 const isEmpty = (file, rank) => {
-	return (getBlock(file, rank).innerHTML == '');
+	//	return (getBlock(file, rank).innerHTML == '');
+	for (const piece in pieces ){
+		if(pieces[piece].alpha==file && pieces[piece].num==rank){
+			return false;
+		}
+	}
+	return true;
 }
 
 function getblock(i) {
